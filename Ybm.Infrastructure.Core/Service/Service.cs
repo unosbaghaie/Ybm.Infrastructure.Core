@@ -8,8 +8,8 @@ using System.Linq.Expressions;
 using System.Text;
 using Z.EntityFramework.Plus;
 using System.Threading.Tasks;
-using System.Threading;
 using Ybm.Infrastructure.Core.Interface;
+using EFCore.BulkExtensions;
 
 namespace Ybm.Infrastructure.Core.Service
 {
@@ -96,6 +96,8 @@ namespace Ybm.Infrastructure.Core.Service
             if (RecordSaved != null)
                 RecordSaved.Invoke(this, new EntitySavingEventArgs<T>() { SavedEntity = item });
         }
+
+       
 
         public virtual async Task<T> CreateAsync(T item)
         {
@@ -440,6 +442,51 @@ namespace Ybm.Infrastructure.Core.Service
         //    return result[0];
 
         //}
+       
+        public T FetchFirstOrDefaultAsNoTracking(Expression<Func<T, bool>> predicate)
+        {
+            return _dbContext.Set<T>().AsNoTracking().FirstOrDefault(predicate);
+        }
+        public async Task<T> FetchFirstOrDefaultAsNoTrackingAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbContext.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate);
+        }
+        public void UpdateWithAttach(T item)
+        {
+            if (item == null)
+                throw new ArgumentNullException("item");
+
+            _dbContext.Set<T>().Attach(item);
+            _dbContext.Entry(item).State = EntityState.Modified;
+            _dbContext.SaveChanges();
+        }
+        public async void UpdateWithAttachAsync(T item)
+        {
+            if (item == null)
+                throw new ArgumentNullException("item");
+
+            _dbContext.Set<T>().Attach(item);
+            _dbContext.Entry(item).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
+        }
+
+
+
+        #region ExecuteSqlQuery
+
+        public int RunQuery(string query, params object[] parameters)
+        {
+            throw new NotImplementedException();
+        }
+        public IList<S> RunQuery<S>(string query, params object[] parameters)
+        {
+            throw new NotImplementedException();
+        }
+        public S RunRawQuery<S>(string query, params object[] parameters)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ExecuteSqlQuery(SqlCommand sqlCommand)
         {
             var entityConnection = _dbContext.Database.GetDbConnection().ConnectionString;
@@ -516,45 +563,68 @@ namespace Ybm.Infrastructure.Core.Service
                 }
             }
             return ds;
-        }
-        public T FetchFirstOrDefaultAsNoTracking(Expression<Func<T, bool>> predicate)
+        } 
+        #endregion
+
+        #region Bulk
+
+        public virtual void BulkInsert(IList<T> items, BulkConfig bulkConfig)
         {
-            return _dbContext.Set<T>().AsNoTracking().FirstOrDefault(predicate);
-        }
-        public async Task<T> FetchFirstOrDefaultAsNoTrackingAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbContext.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate);
-        }
-        public void UpdateWithAttach(T item)
-        {
-            if (item == null)
+            if (items == null)
                 throw new ArgumentNullException("item");
 
-            _dbContext.Set<T>().Attach(item);
-            _dbContext.Entry(item).State = EntityState.Modified;
-            _dbContext.SaveChanges();
+            _dbContext.BulkInsert(items, bulkConfig);
         }
-        public async void UpdateWithAttachAsync(T item)
+        public virtual async System.Threading.Tasks.Task BulkInsertAsync(IList<T> items, BulkConfig bulkConfig)
         {
-            if (item == null)
+            if (items == null)
                 throw new ArgumentNullException("item");
 
-            _dbContext.Set<T>().Attach(item);
-            _dbContext.Entry(item).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.BulkInsertAsync(items, bulkConfig);
         }
-        public int RunQuery(string query, params object[] parameters)
+        public virtual void BulkUpdate(IList<T> items, BulkConfig bulkConfig)
         {
-            throw new NotImplementedException();
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            _dbContext.BulkUpdate(items, bulkConfig);
         }
-        public IList<S> RunQuery<S>(string query, params object[] parameters)
+        public virtual async System.Threading.Tasks.Task BulkUpdateAsync(IList<T> items, BulkConfig bulkConfig)
         {
-            throw new NotImplementedException();
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            await _dbContext.BulkUpdateAsync(items, bulkConfig);
         }
-        public S RunRawQuery<S>(string query, params object[] parameters)
+        public virtual void BulkDelete(IList<T> items, BulkConfig bulkConfig)
         {
-            throw new NotImplementedException();
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            _dbContext.BulkDelete(items, bulkConfig);
+        }
+        public virtual async System.Threading.Tasks.Task BulkDeleteAsync(IList<T> items, BulkConfig bulkConfig)
+        {
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            await _dbContext.BulkDeleteAsync(items, bulkConfig);
+        }
+        public virtual void BulkRead(IList<T> items, BulkConfig bulkConfig)
+        {
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            _dbContext.BulkRead(items, bulkConfig);
+        }
+        public virtual async System.Threading.Tasks.Task BulkReadAsync(IList<T> items, BulkConfig bulkConfig)
+        {
+            if (items == null)
+                throw new ArgumentNullException("item");
+
+            await _dbContext.BulkReadAsync(items, bulkConfig);
         }
 
+        #endregion
     }
 }
