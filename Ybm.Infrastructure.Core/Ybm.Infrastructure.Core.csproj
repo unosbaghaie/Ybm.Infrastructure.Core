@@ -1,7 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageOutputPath>..\Ybm.Infrastructure.Core\bin\Release\netstandard2.0\</PackageOutputPath>
+    <PackageOutputPath>..\Ybm.Infrastructure.Core\bin\Debug\netstandard2.0\</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
