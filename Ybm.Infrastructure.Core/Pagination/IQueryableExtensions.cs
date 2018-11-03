@@ -1,92 +1,106 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
+using Ybm.Infrastructure.Core.ExpressionHelper;
+
 
 namespace Ybm.Infrastructure.Core.Pagination
 {
   
-    public static class IQueryableExtensions
-    {
-        //public static PagedList<T> ApplyPaging<T>(this IQueryable<T> query , QueryModel queryModel)
-        //{
 
-        //    var take = queryModel.PageSize;
-        //    var skip = (queryModel.Page > 0 ? queryModel.Page - 1 : 0) * take;
+        public static class IQueryableExtensions
+        {
+            public static GridDataResult<T> ApplyPaging<T>(this IQueryable<T> query, GridState queryModel)
+            {
+                if (queryModel == null)
+                    queryModel = new GridState() { skip = 0, take = 10 };
 
-        //    if (queryModel.Page <= 0)
-        //    {
-        //        queryModel.Page = 1;
-        //    }
+                var count = query.Count();
 
-        //    if (queryModel.PageSize <= 0)
-        //    {
-        //        queryModel.PageSize = 10;
-        //    }
+                if (queryModel == null || (queryModel.take == 0 && queryModel.skip == 0))
+                    queryModel = new GridState()
+                    {
+                        skip = 0,
+                        take = 10
+                    };
 
-        //    var countOfAll = query.Count();
+                query = query.Skip(queryModel.skip).Take(queryModel.take);
 
-        //    var result = new PagedList<T>();
+                var result = new GridDataResult<T>();
+                result.total = count;
+                result.data = query.ToList();
 
-        //    result.CurrentPage = queryModel.Page;
+                return result;
+            }
 
-        //    var NumberOfPages = Math.Ceiling((double)countOfAll / (double)queryModel.PageSize);
+            public async static Task<GridDataResult<T>> ApplyPagingAsync<T>(this IQueryable<T> query, GridState queryModel)
+            {
+                var count = query.Count();
 
-        //    result.NumberOfPages = Convert.ToInt32(NumberOfPages);
+                if (queryModel == null)
+                    queryModel = new GridState()
+                    {
+                        skip = 0,
+                        take = 10
+                    };
 
-        //    result.TotalItems = countOfAll;
+                query = query.Skip(queryModel.skip).Take(queryModel.take);
 
-        //    result.Items = query.Skip((queryModel.Page - 1) * queryModel.PageSize).Take(queryModel.PageSize).ToHashSet();
+                var result = new GridDataResult<T>();
+                result.total = count;
+                result.data = await query.ToListAsync();
 
-        //    if (result.NumberOfPages < 10)
-        //        result.MaxSize = result.NumberOfPages;
-        //    else
-        //        result.MaxSize = 10;
-
-        //    return result;
-        //}
-
-
-
-
-        //public static IQueryable<T> ApplyPaging<T>(
-        //  this IQueryable<T> query, IPagedQueryModel model)
-        //{
-        //    if (model.Page <= 0)
-        //    {
-        //        model.Page = 1;
-        //    }
-
-        //    if (model.PageSize <= 0)
-        //    {
-        //        model.PageSize = 10;
-        //    }
-
-        //    return query.Skip((model.Page - 1) * model.PageSize).Take(model.PageSize);
-        //}
+                return result;
+            }
 
 
-        //public static IQueryable<T> ApplyOrdering<T>(
-        //  this IQueryable<T> query,
-        //  QueryModel model,
-        //  IDictionary<string, Expression<Func<T, object>>> columnsMap)
-        //{
-        //    if (string.IsNullOrWhiteSpace(model.SortBy) || !columnsMap.ContainsKey(model.SortBy))
-        //    {
-        //        return query;
-        //    }
 
-        //    if (model.IsAscending)
-        //    {
-        //        return query.OrderBy(columnsMap[model.SortBy]);
-        //    }
-        //    else
-        //    {
-        //        return query.OrderByDescending(columnsMap[model.SortBy]);
-        //    }
-        //}
+            public static IQueryable<T> ApplyOrdering<T>(this IQueryable<T> query, GridState model)
+            {
+                if (model == null || model.sort == null || !model.sort.Any())
+                {
+                    var type = typeof(T);
+                    var field = type.GetProperties().Where(q => q.Name.Contains("Id")).FirstOrDefault();
 
+                    if (field == null)
+                        throw new Exception("حداقل یک فیلد شامل کلمه ی Id برای مرتب سازی داده ها نیاز می باشد");
 
+                    return query.OrderBy(field.Name);
+                }
+                bool isFirstTime = true;
+                foreach (var sort in model.sort)
+                {
+                    if (string.IsNullOrWhiteSpace(sort.field))
+                        continue;
+
+                    if (sort.dir == "asc" && isFirstTime)
+                    {
+                        query = query.OrderBy(sort.field);
+                    }
+                    else
+                    if (sort.dir == "asc" && !isFirstTime)
+                    {
+                        query = query.ThenBy(sort.field);
+                    }
+                    else
+                    if (sort.dir == "des" && isFirstTime)
+                    {
+                        query = query.OrderByDescending(sort.field);
+                    }
+                    else
+                    if (sort.dir == "des" && !isFirstTime)
+                    {
+                        query = query.ThenByDescending(sort.field);
+                    }
+                    isFirstTime = false;
+                }
+                return query;
+            }
+
+        }
     }
-}
+

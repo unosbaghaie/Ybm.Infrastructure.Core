@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Ybm.Infrastructure.Core.HttpRequest
 {
-    public class HttpPostRequest : IHttpRequest
+    public class YbmHttpRequest : IHttpRequest
     {
         /// <summary>
         /// Post request 
@@ -19,7 +19,7 @@ namespace Ybm.Infrastructure.Core.HttpRequest
 
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(httpObject.Url);
             httpWebRequest.ContentType = contentType;
-            httpWebRequest.Method = EnumHttpMethod.Post.ToString();
+            httpWebRequest.Method =httpObject.Method.ToString();
 
             if (parameters != null)
                 foreach (var p in parameters)

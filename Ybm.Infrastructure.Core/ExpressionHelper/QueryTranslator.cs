@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ybm.Infrastructure.Core.Supporting
+namespace Ybm.Infrastructure.Core.ExpressionHelper
 {
     public class QueryTranslator : ExpressionVisitor
     {

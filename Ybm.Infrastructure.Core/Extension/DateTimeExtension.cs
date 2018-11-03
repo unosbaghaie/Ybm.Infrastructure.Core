@@ -30,27 +30,27 @@ namespace Ybm.Framework
 
             return result.ToString();
         }
-            public static string GetPersianDateWithTime(this DateTime helper)
-            {
-                string format = "yyyy/mm/dd hh:jj:ss";
+        public static string GetPersianDateWithTime(this DateTime helper)
+        {
+            string format = "yyyy/mm/dd hh:jj:ss";
 
-                if (helper.Year < 1000) helper = DateTime.Now;
-                PersianCalendar pc = new PersianCalendar();
+            if (helper.Year < 1000) helper = DateTime.Now;
+            PersianCalendar pc = new PersianCalendar();
 
-                StringBuilder result = new StringBuilder(format.ToLower());
+            StringBuilder result = new StringBuilder(format.ToLower());
 
-                result = result.Replace("hh", helper.Hour.ToString());
-                result = result.Replace("jj", helper.Minute.ToString());
-                result = result.Replace("ss", helper.Second.ToString());
+            result = result.Replace("hh", helper.Hour.ToString());
+            result = result.Replace("jj", helper.Minute.ToString());
+            result = result.Replace("ss", helper.Second.ToString());
 
-                result = result.Replace("yyyy", pc.GetYear(helper).ToString());
+            result = result.Replace("yyyy", pc.GetYear(helper).ToString());
 
-                result = result.Replace("mm", pc.GetMonth(helper).ToString("00"));
+            result = result.Replace("mm", pc.GetMonth(helper).ToString("00"));
 
-                result = result.Replace("dd", pc.GetDayOfMonth(helper).ToString("00"));
+            result = result.Replace("dd", pc.GetDayOfMonth(helper).ToString("00"));
 
-                return result.ToString();
-            }
+            return result.ToString();
+        }
 
 
         public static string GetPersianDateTime(this DateTime? helper)
